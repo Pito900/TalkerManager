@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const crypto = require('crypto');
 const fs = require('fs');
 
 const app = express();
@@ -34,3 +35,13 @@ app
     if (!talker) return res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
     res.status(200).send(talker);
 });
+
+app
+  .route('/login')
+  .post((req, res) => {
+    const { email, password } = req.body;
+    const data = JSON.parse(fs.readFileSync('./talker.json', 'utf8'));
+    data.push({ email, password });
+    const token = crypto.randomBytes(8).toString('hex'); // https://stackoverflow.com/questions/55104802/nodejs-crypto-randombytes-to-string-hex-doubling-size
+    return res.status(200).send({ token });
+  });
