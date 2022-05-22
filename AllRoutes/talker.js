@@ -26,14 +26,34 @@ route.post('/',
   middle.validateDate, 
   middle.validateRate,
   (req, res) => {
-    const talkerJson = './talker.json';
+    const talkerDataJson = './talker.json';
     const { name, age, talk: { watchedAt, rate } } = req.body;
-    const talker = JSON.parse(fs.readFileSync(talkerJson, 'utf8'));
+    const talker = JSON.parse(fs.readFileSync(talkerDataJson, 'utf8'));
     const id = talker.length + 1;
-    fs.writeFileSync(talkerJson, 
+    fs.writeFileSync(talkerDataJson, 
     JSON.stringify([...talker, { name, id, age, talk: { watchedAt, rate } }], null, 2));
-    const newData = { id, name, age, talk: { watchedAt, rate } };
-    res.status(201).json(newData);
+    res.status(201).json({ id, name, age, talk: { watchedAt, rate } });
+});
+
+route.put('/:id',
+  middle.validateToken,
+  middle.validateName, 
+  middle.validateAge, 
+  middle.validateTalk, 
+  middle.validateDate, 
+  middle.validateRate,
+  (req, res) => {
+    const talkerDataJson = './talker.json';
+    const talker = JSON.parse(fs.readFileSync(talkerDataJson, 'utf8'));
+    const { name, age, talk: { watchedAt, rate } } = req.body;
+    const { id } = req.params;
+    const aData = { id: parseInt(id, 10), name, age, talk: { watchedAt, rate } };
+    const tIndex = talker.map((item) => (item.id === Number(id) ? aData : item));
+    if (tIndex) {
+      fs.writeFileSync(talkerDataJson,
+      JSON.stringify(tIndex));
+      res.status(200).json(aData);
+    }
 });
 
 module.exports = route;
