@@ -2,9 +2,18 @@ const express = require('express');
 
 const route = express.Router();
 const fs = require('fs');
+
 const middle = require('../middlewares');
 
 const talkerDataJson = './talker.json';
+
+route.get('/search', middle.validateToken, (req, res) => {
+  const talker = JSON.parse(fs.readFileSync(talkerDataJson, 'utf8'));
+  const { q } = req.query;
+  const filTalkers = talker.filter((item) => item.name.includes(q));
+  if (!filTalkers) return res.status(200).send([]);
+  res.status(200).json(filTalkers);
+});
 
 route.get('/', (_request, response) => {
     const data = fs.readFileSync(talkerDataJson, 'utf8');
