@@ -4,8 +4,10 @@ const route = express.Router();
 const fs = require('fs');
 const middle = require('../middlewares');
 
+const talkerDataJson = './talker.json';
+
 route.get('/', (_request, response) => {
-    const data = fs.readFileSync('./talker.json', 'utf8');
+    const data = fs.readFileSync(talkerDataJson, 'utf8');
   if (data.length === 0) return response.status(200).send([]);
   response.status(200).send(JSON.parse(data));
 });
@@ -26,7 +28,6 @@ route.post('/',
   middle.validateDate, 
   middle.validateRate,
   (req, res) => {
-    const talkerDataJson = './talker.json';
     const { name, age, talk: { watchedAt, rate } } = req.body;
     const talker = JSON.parse(fs.readFileSync(talkerDataJson, 'utf8'));
     const id = talker.length + 1;
@@ -43,7 +44,6 @@ route.put('/:id',
   middle.validateDate, 
   middle.validateRate,
   (req, res) => {
-    const talkerDataJson = './talker.json';
     const talker = JSON.parse(fs.readFileSync(talkerDataJson, 'utf8'));
     const { name, age, talk: { watchedAt, rate } } = req.body;
     const { id } = req.params;
@@ -54,6 +54,19 @@ route.put('/:id',
       JSON.stringify(tIndex));
       res.status(200).json(aData);
     }
+});
+
+route.delete('/:id',
+  middle.validateToken,
+  (req, res) => {
+    const talker = JSON.parse(fs.readFileSync(talkerDataJson, 'utf8'));
+    const { id } = req.params;
+    const tIndex = talker.findIndex((item) => item.id === Number(id, 10));
+    if (tIndex === -1) return res.status(401).json({ message: 'Token não encontrado' });
+      talker.splice(tIndex, 1);
+      fs.writeFileSync(talkerDataJson,
+      JSON.stringify(talker));
+      res.status(204).end();
 });
 
 module.exports = route;
